@@ -213,7 +213,7 @@ def hgnn_experiment(dataset, args, depth, t, use_exponential=True, patience=10, 
                 print(f"Early stopping at epoch {epoch + 1}.")
                 break
 
-    return best_accuracies_per_epoch
+    return accuracy
 
 if __name__ == "__main__":
     SEED = 42
@@ -222,29 +222,41 @@ if __name__ == "__main__":
     dataset, train_indices, test_indices = data.load(args)
 
     dataset_lcc = load_largest_connected_hypergraph(dataset)
-    results = {}
+    results = []
 
-    t_values = [0, 1, 10, 100]
-    for t in t_values:
-        print(f"Running experiment with t={t}.")
-        best_accuracies = []
-        for depth in range(2, 21):  # Running experiments for layers 2 to 20
-            best_accuracies_per_epoch = hgnn_experiment(dataset_lcc, args, depth=depth, t=t, use_exponential=True)
-            best_accuracies.append(max(best_accuracies_per_epoch))  # Store the best accuracy across epochs
+    for depth in range(2, 21):  # Running experiments for layers 2 to 20
+            acc = hgnn_experiment(dataset_lcc, args, depth=depth, t=0, use_exponential=False)        
+            results.append(acc)
+
+
+    # t_values = [0, 1, 10, 100]
+    # for t in t_values:
+    #     print(f"Running experiment with t={t}.")
+    #     best_accuracies = []
+    #     for depth in range(2, 21):  # Running experiments for layers 2 to 20
+    #         acc = hgnn_experiment(dataset_lcc, args, depth=depth, t=t, use_exponential=True)        
         
-        # Store best accuracies for the current value of t
-        results[t] = best_accuracies
+    #     results[t] = acc
 
     # Save results in a JSON file
     with open("best_experiment_results.json", "w") as f:
         json.dump(results, f)
 
-    # Plot the best accuracies for each t
-    for t, accuracies in results.items():
-        plt.plot(range(2, 21), accuracies, label=f"t={t}")
-    
+    # Plot the accuracies
+    plt.plot(range(2, 21), results, label="use_exponential=False")
+
     plt.xlabel("Number of Layers")
-    plt.ylabel("Best Accuracy Across Epochs")
-    plt.title("Best Accuracy Across Epochs vs. Number of Layers for different t values")
+    plt.ylabel("Accuracy Across Epochs")
+    plt.title("Accuracy Across Epochs vs. Number of Layers (No Exponential)")
     plt.legend()
     plt.show()
+
+    # # Plot the best accuracies for each t
+    # for t, accuracies in results.items():
+    #     plt.plot(range(2, 21), accuracies, label=f"t={t}")
+    
+    # plt.xlabel("Number of Layers")
+    # plt.ylabel("Accuracy Across Epochs")
+    # plt.title("Accuracy Across Epochs vs. Number of Layers for different t values")
+    # plt.legend()
+    # plt.show()
